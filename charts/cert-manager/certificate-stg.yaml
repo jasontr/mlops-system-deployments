@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: letsencrypt-staging
+  namespace: cert-manager
+spec:
+  dnsNames:
+  - argocd.gateway-7e0fe6b4.nip.io
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+  secretName: letsencrypt-staging-tls
