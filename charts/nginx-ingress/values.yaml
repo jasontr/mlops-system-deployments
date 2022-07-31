@@ -1,0 +1,155 @@
+controller:
+  ## Use host ports 80 and 443
+  ## Disabled by default
+  hostPort:
+    # -- Enable 'hostPort' or not
+    enabled: false
+    ports:
+      # -- 'hostPort' http port
+      http: 80
+      # -- 'hostPort' https port
+      https: 443
+
+  # -- Allows customization of the source of the IP address or FQDN to report
+  # in the ingress status field. By default, it reads the information provided
+  # by the service. If disable, the status field reports the IP address of the
+  # node or nodes where an ingress controller pod is running.
+  publishService:
+    # -- Enable 'publishService' or not
+    enabled: true
+    # -- Allows overriding of the publish service to bind to
+    # Must be <namespace>/<service_name>
+    pathOverride: ""
+
+  # -- Use a `DaemonSet` or `Deployment`
+  kind: Deployment
+
+  replicaCount: 1
+
+  minAvailable: 1
+
+  ## Define requests resources to avoid probe issues due to CPU utilization in busy nodes
+  ## ref: https://github.com/kubernetes/ingress-nginx/issues/4735#issuecomment-551204903
+  ## Ideally, there should be no limits.
+  ## https://engineering.indeedblog.com/blog/2019/12/cpu-throttling-regression-fix/
+  resources:
+  ##  limits:
+  ##    cpu: 100m
+  ##    memory: 90Mi
+    requests:
+      cpu: 100m
+      memory: 90Mi
+
+
+  service:
+    enabled: true
+
+    # -- If enabled is adding an appProtocol option for Kubernetes service. An appProtocol field replacing annotations that were
+    # using for setting a backend protocol. Here is an example for AWS: service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    # It allows choosing the protocol for each backend specified in the Kubernetes service.
+    # See the following GitHub issue for more details about the purpose: https://github.com/kubernetes/kubernetes/issues/40244
+    # Will be ignored for Kubernetes versions older than 1.20
+    ##
+    appProtocol: true
+
+    annotations: {}
+    labels: {}
+    # clusterIP: ""
+
+    # -- List of IP addresses at which the controller services are available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    # loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+
+    enableHttp: true
+    enableHttps: true
+
+    ## Set external traffic policy to: "Local" to preserve source IP on providers supporting it.
+    ## Ref: https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-typeloadbalancer
+    # externalTrafficPolicy: ""
+
+    ## Must be either "None" or "ClientIP" if set. Kubernetes will default to "None".
+    ## Ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+    # sessionAffinity: ""
+
+    ## Specifies the health check node port (numeric port number) for the service. If healthCheckNodePort isn’t specified,
+    ## the service controller allocates a port from your cluster’s NodePort range.
+    ## Ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+    # healthCheckNodePort: 0
+
+    # -- Represents the dual-stack-ness requested or required by this Service. Possible values are
+    # SingleStack, PreferDualStack or RequireDualStack.
+    # The ipFamilies and clusterIPs fields depend on the value of this field.
+    ## Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/
+    ipFamilyPolicy: "SingleStack"
+
+    # -- List of IP families (e.g. IPv4, IPv6) assigned to the service. This field is usually assigned automatically
+    # based on cluster configuration and the ipFamilyPolicy field.
+    ## Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/
+    ipFamilies:
+      - IPv4
+
+    ports:
+      http: 80
+      https: 443
+
+    targetPorts:
+      http: http
+      https: https
+
+    type: LoadBalancer
+
+    ## type: NodePort
+    ## nodePorts:
+    ##   http: 32080
+    ##   https: 32443
+    ##   tcp:
+    ##     8080: 32808
+    nodePorts:
+      http: ""
+      https: ""
+      tcp: {}
+      udp: {}
+
+    prometheusRule:
+      enabled: false
+      additionalLabels: {}
+      # namespace: ""
+      rules: []
+        # # These are just examples rules, please adapt them to your needs
+        # - alert: NGINXConfigFailed
+        #   expr: count(nginx_ingress_controller_config_last_reload_successful == 0) > 0
+        #   for: 1s
+        #   labels:
+        #     severity: critical
+        #   annotations:
+        #     description: bad ingress config - nginx config test failed
+        #     summary: uninstall the latest ingress changes to allow config reloads to resume
+        # - alert: NGINXCertificateExpiry
+        #   expr: (avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time()) < 604800
+        #   for: 1s
+        #   labels:
+        #     severity: critical
+        #   annotations:
+        #     description: ssl certificate(s) will expire in less then a week
+        #     summary: renew expiring certificates to avoid downtime
+        # - alert: NGINXTooMany500s
+        #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"5.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+        #   for: 1m
+        #   labels:
+        #     severity: warning
+        #   annotations:
+        #     description: Too many 5XXs
+        #     summary: More than 5% of all requests returned 5XX, this requires your attention
+        # - alert: NGINXTooMany400s
+        #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"4.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+        #   for: 1m
+        #   labels:
+        #     severity: warning
+        #   annotations:
+        #     description: Too many 4XXs
+        #     summary: More than 5% of all requests returned 4XX, this requires your attention
+
