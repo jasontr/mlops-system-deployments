@@ -5,7 +5,7 @@ metadata:
   namespace: cert-manager
 spec:
   dnsNames:
-  - argocd.gateway-7e0fe6b4.nip.io
+  - argocd.gateway-7e334ca5.nip.io
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-staging
