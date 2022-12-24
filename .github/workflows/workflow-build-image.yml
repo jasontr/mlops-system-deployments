@@ -1,9 +1,13 @@
 on:
   workflow_call:
     inputs: 
-      dockerfile_path:
-        description: 'The path of the Dockerfile of the image to build.'
-        default: './Dockerfile'
+      context:
+        description: 'The directory of the Dockerfile of the image to build.'
+        required: true
+        type: string
+      dockerfile:
+        description: 'The filename of the Dockerfile of the image to build under context.'
+        default: 'Dockerfile'
         required: false
         type: string
       push:
@@ -20,6 +24,11 @@ on:
         required: false
         default: NONE
         type: string
+    secrets:
+      DOCKER_HUB_USERNAME:
+        required: true
+      DOCKER_HUB_ACCESS_TOKEN:
+        required: true
 
 jobs:
   build_image:
@@ -44,7 +53,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
-          file: ${{ inputs.dockerfile_path }}
+          context: ${{ inputs.context }}
+          file: ${{ format('{0}/{1}', inputs.context, inputs.dockerfile) }}
           push: ${{ inputs.push }}
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image_name }}:${{ inputs.fixed_image_tag == 'NONE' && steps.set_var.outputs.sha_short || inputs.fixed_image_tag }}

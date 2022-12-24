@@ -4,12 +4,12 @@ on:
     branches:
       - main
     paths:
-      - './docker/airflow/Dockerfile'
+      - 'docker/airflow/**'
 jobs:
   build_image:
     uses: ./.github/workflows/workflow-build-image.yml
     with:
-      dockerfile_path: './docker/airflow/Dockerfile'
+      context: 'docker/airflow'
       push: true
       image_name: airflow
-
+    secrets: inherit
