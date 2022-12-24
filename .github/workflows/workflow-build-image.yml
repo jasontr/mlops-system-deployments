@@ -1,0 +1,50 @@
+on:
+  workflow_call:
+    inputs: 
+      dockerfile_path:
+        description: 'The path of the Dockerfile of the image to build.'
+        default: './Dockerfile'
+        required: false
+        type: string
+      push:
+        description: 'The flag of if push to Docker registry or not.'
+        default: false
+        required: false
+        type: boolean
+      image_name:
+        description: 'Container image name.'
+        required: true
+        type: string
+      fixed_image_tag:
+        description: 'Fixed container image tag.'
+        required: false
+        default: NONE
+        type: string
+
+jobs:
+  build_image:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      - name: Set sha_short
+        id: set_var
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          push: ${{ inputs.push }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image_name }}:${{ inputs.fixed_image_tag == 'NONE' && steps.set_var.outputs.sha_short || inputs.fixed_image_tag }}
