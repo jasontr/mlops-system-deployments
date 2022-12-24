@@ -1,0 +1,15 @@
+name: Build Airflow Container Image
+on: 
+  pull_request:
+    branches:
+      - main
+    paths:
+      - './docker/airflow/Dockerfile'
+jobs:
+  build_image:
+    uses: ./.github/workflows/workflow-build-image.yml
+    with:
+      dockerfile_path: './docker/airflow/Dockerfile'
+      push: false
+      image_name: airflow
+
